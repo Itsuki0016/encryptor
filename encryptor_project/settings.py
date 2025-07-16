@@ -92,7 +92,7 @@ STATIC_URL = '/static/'
 
 # ログイン関連のリダイレクト
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/encrypt/'
+LOGIN_REDIRECT_URL = '/'  # ルートURLにリダイレクト
 LOGOUT_REDIRECT_URL = '/login/'
 
 # デフォルトの自動フィールド

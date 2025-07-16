@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>🔐 暗号化フォーム</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        {{ form.text.label_tag }}<br>
+        {{ form.text }}
+    </div>
+    <div class="mb-3">
+        {{ form.method.label_tag }}<br>
+        {{ form.method }}
+    </div>
+    <button type="submit" class="btn btn-primary">暗号化する</button>
+</form>
+{% endblock %}

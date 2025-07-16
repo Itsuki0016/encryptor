@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .forms import EncryptForm, DecryptForm
 from .models import CryptoLog
 from .utils import caesar_encrypt, caesar_decrypt, base64_encrypt, base64_decrypt
@@ -13,24 +14,28 @@ def encrypt_view(request):
             text = form.cleaned_data['text']
             method = form.cleaned_data['method']
 
-            if method == 'caesar':
-                encrypted = caesar_encrypt(text)
-            else:
-                encrypted = base64_encrypt(text)
+            try:
+                if method == 'caesar':
+                    encrypted = caesar_encrypt(text)
+                else:
+                    encrypted = base64_encrypt(text)
 
-            # DB保存
-            CryptoLog.objects.create(
-                user=request.user,
-                original_text=text,
-                encrypted_text=encrypted,
-                method=method,
-                is_decryption=False
-            )
+                # DB保存
+                CryptoLog.objects.create(
+                    user=request.user,
+                    original_text=text,
+                    encrypted_text=encrypted,
+                    method=method,
+                    is_decryption=False
+                )
 
-            return render(request, 'crypto/result.html', {
-                'result': encrypted,
-                'mode': 'encrypt'
-            })
+                messages.success(request, '暗号化が完了しました！')
+                return render(request, 'crypto/result.html', {
+                    'result': encrypted,
+                    'mode': 'encrypt'
+                })
+            except Exception as e:
+                messages.error(request, f'暗号化に失敗しました: {str(e)}')
     else:
         form = EncryptForm()
 
@@ -50,22 +55,23 @@ def decrypt_view(request):
                     decrypted = caesar_decrypt(encrypted)
                 else:
                     decrypted = base64_decrypt(encrypted)
-            except Exception:
-                decrypted = "[エラー] 復号に失敗しました"
 
-            # DB保存
-            CryptoLog.objects.create(
-                user=request.user,
-                original_text=decrypted,
-                encrypted_text=encrypted,
-                method=method,
-                is_decryption=True
-            )
+                # DB保存
+                CryptoLog.objects.create(
+                    user=request.user,
+                    original_text=decrypted,
+                    encrypted_text=encrypted,
+                    method=method,
+                    is_decryption=True
+                )
 
-            return render(request, 'crypto/result.html', {
-                'result': decrypted,
-                'mode': 'decrypt'
-            })
+                messages.success(request, '復号が完了しました！')
+                return render(request, 'crypto/result.html', {
+                    'result': decrypted,
+                    'mode': 'decrypt'
+                })
+            except Exception as e:
+                messages.error(request, f'復号に失敗しました: {str(e)}')
     else:
         form = DecryptForm()
 
