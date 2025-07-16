@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>{{ mode|title }} 結果</h2>
+
+<div class="alert alert-success">
+    <strong>{{ mode == "encrypt" and "暗号化" or "復号" }}結果:</strong>
+    <p><code>{{ result }}</code></p>
+</div>
+
+<a href="{% url 'encrypt' %}" class="btn btn-outline-primary">もう一度暗号化</a>
+<a href="{% url 'decrypt' %}" class="btn btn-outline-secondary">復号ページへ</a>
+<a href="{% url 'history' %}" class="btn btn-outline-dark">履歴を見る</a>
+{% endblock %}

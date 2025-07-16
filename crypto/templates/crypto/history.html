@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>📜 履歴一覧</h2>
+
+{% if logs %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>日時</th>
+                <th>方式</th>
+                <th>種類</th>
+                <th>元の文</th>
+                <th>変換結果</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+                <tr>
+                    <td>{{ log.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ log.get_method_display }}</td>
+                    <td>{{ log.is_decryption|yesno:"復号,暗号" }}</td>
+                    <td>{{ log.original_text }}</td>
+                    <td><code>{{ log.encrypted_text }}</code></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>履歴はまだありません。</p>
+{% endif %}
+{% endblock %}

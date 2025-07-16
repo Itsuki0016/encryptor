@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>🕵️‍♂️ 復号フォーム</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        {{ form.encrypted.label_tag }}<br>
+        {{ form.encrypted }}
+    </div>
+    <div class="mb-3">
+        {{ form.method.label_tag }}<br>
+        {{ form.method }}
+    </div>
+    <button type="submit" class="btn btn-warning">復号する</button>
+</form>
+{% endblock %}
