@@ -1,3 +1,5 @@
+# crypto/admin.py
 from django.contrib import admin
+from .models import CryptoLog
 
-# Register your models here.
+admin.site.register(CryptoLog)
