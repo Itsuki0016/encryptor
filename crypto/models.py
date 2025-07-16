@@ -7,6 +7,11 @@ class CryptoLog(models.Model):
         ('base64', 'Base64'),
         ('random_substitution', 'ランダム置換暗号'),
         ('morse', 'モールス信号風'),
+        ('rot13', 'ROT13暗号'),
+        ('atbash', 'Atbash暗号'),
+        ('vigenere', 'Vigenère暗号'),
+        ('number', '数字置換暗号'),
+        ('binary', 'Binary暗号'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)

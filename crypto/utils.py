@@ -118,3 +118,118 @@ def morse_decrypt(morse_text):
             result.append(morse_char)  # 対応しない文字はそのまま
     
     return ''.join(result)
+
+# ROT13暗号（13文字シフト）
+def rot13_encrypt(text):
+    result = ''
+    for char in text:
+        if char.isalpha():
+            base = ord('A') if char.isupper() else ord('a')
+            result += chr((ord(char) - base + 13) % 26 + base)
+        else:
+            result += char
+    return result
+
+# ROT13復号（ROT13は自己逆変換）
+def rot13_decrypt(text):
+    return rot13_encrypt(text)
+
+# Atbash暗号（アルファベットを逆順に置換）
+def atbash_encrypt(text):
+    result = ''
+    for char in text:
+        if char.isalpha():
+            if char.isupper():
+                result += chr(ord('Z') - (ord(char) - ord('A')))
+            else:
+                result += chr(ord('z') - (ord(char) - ord('a')))
+        else:
+            result += char
+    return result
+
+# Atbash復号（Atbashは自己逆変換）
+def atbash_decrypt(text):
+    return atbash_encrypt(text)
+
+# Vigenère暗号（キーワード: "ENCRYPT"）
+def vigenere_encrypt(text, keyword="ENCRYPT"):
+    result = ''
+    keyword = keyword.upper()
+    keyword_index = 0
+    
+    for char in text:
+        if char.isalpha():
+            shift = ord(keyword[keyword_index % len(keyword)]) - ord('A')
+            base = ord('A') if char.isupper() else ord('a')
+            result += chr((ord(char) - base + shift) % 26 + base)
+            keyword_index += 1
+        else:
+            result += char
+    return result
+
+# Vigenère復号
+def vigenere_decrypt(text, keyword="ENCRYPT"):
+    result = ''
+    keyword = keyword.upper()
+    keyword_index = 0
+    
+    for char in text:
+        if char.isalpha():
+            shift = ord(keyword[keyword_index % len(keyword)]) - ord('A')
+            base = ord('A') if char.isupper() else ord('a')
+            result += chr((ord(char) - base - shift) % 26 + base)
+            keyword_index += 1
+        else:
+            result += char
+    return result
+
+# 数字置換暗号（A=01, B=02, ...）
+def number_encrypt(text):
+    result = []
+    for char in text:
+        if char.isalpha():
+            if char.isupper():
+                result.append(str(ord(char) - ord('A') + 1).zfill(2))
+            else:
+                result.append(str(ord(char) - ord('a') + 1).zfill(2))
+        else:
+            result.append(char)
+    return ''.join(result)
+
+# 数字置換復号
+def number_decrypt(text):
+    result = ''
+    i = 0
+    while i < len(text):
+        if text[i:i+2].isdigit():
+            num = int(text[i:i+2])
+            if 1 <= num <= 26:
+                result += chr(ord('A') + num - 1)
+                i += 2
+            else:
+                result += text[i]
+                i += 1
+        else:
+            result += text[i]
+            i += 1
+    return result
+
+# Binary暗号（文字をバイナリに変換）
+def binary_encrypt(text):
+    result = []
+    for char in text:
+        binary = bin(ord(char))[2:].zfill(8)
+        result.append(binary)
+    return ' '.join(result)
+
+# Binary復号
+def binary_decrypt(text):
+    try:
+        binary_codes = text.split(' ')
+        result = ''
+        for binary in binary_codes:
+            if binary:
+                result += chr(int(binary, 2))
+        return result
+    except:
+        return "[エラー] 復号に失敗しました"

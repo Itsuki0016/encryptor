@@ -8,7 +8,12 @@ from .utils import (
     caesar_encrypt, caesar_decrypt, 
     base64_encrypt, base64_decrypt,
     random_substitution_encrypt, random_substitution_decrypt,
-    morse_encrypt, morse_decrypt
+    morse_encrypt, morse_decrypt,
+    rot13_encrypt, rot13_decrypt,
+    atbash_encrypt, atbash_decrypt,
+    vigenere_encrypt, vigenere_decrypt,
+    number_encrypt, number_decrypt,
+    binary_encrypt, binary_decrypt
 )
 
 # ログアウトビュー
@@ -39,6 +44,16 @@ def encrypt_view(request):
                     encrypted = random_substitution_encrypt(text)
                 elif method == 'morse':
                     encrypted = morse_encrypt(text)
+                elif method == 'rot13':
+                    encrypted = rot13_encrypt(text)
+                elif method == 'atbash':
+                    encrypted = atbash_encrypt(text)
+                elif method == 'vigenere':
+                    encrypted = vigenere_encrypt(text)
+                elif method == 'number':
+                    encrypted = number_encrypt(text)
+                elif method == 'binary':
+                    encrypted = binary_encrypt(text)
                 else:
                     raise ValueError("未対応の暗号方式です")
 
@@ -81,6 +96,16 @@ def decrypt_view(request):
                     decrypted = random_substitution_decrypt(encrypted)
                 elif method == 'morse':
                     decrypted = morse_decrypt(encrypted)
+                elif method == 'rot13':
+                    decrypted = rot13_decrypt(encrypted)
+                elif method == 'atbash':
+                    decrypted = atbash_decrypt(encrypted)
+                elif method == 'vigenere':
+                    decrypted = vigenere_decrypt(encrypted)
+                elif method == 'number':
+                    decrypted = number_decrypt(encrypted)
+                elif method == 'binary':
+                    decrypted = binary_decrypt(encrypted)
                 else:
                     raise ValueError("未対応の暗号方式です")
 
