@@ -1,9 +1,20 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 from django.contrib import messages
 from .forms import EncryptForm, DecryptForm
 from .models import CryptoLog
 from .utils import caesar_encrypt, caesar_decrypt, base64_encrypt, base64_decrypt
+
+# ログアウトビュー
+def logout_view(request):
+    if request.method == 'POST':
+        logout(request)
+        messages.success(request, 'ログアウトしました。')
+        return redirect('login')
+    else:
+        # GETリクエストの場合は確認ページを表示
+        return render(request, 'crypto/logout_confirm.html')
 
 # 🔐 暗号化ビュー
 @login_required

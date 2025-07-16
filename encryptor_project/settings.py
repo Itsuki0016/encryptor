@@ -97,3 +97,9 @@ LOGOUT_REDIRECT_URL = '/login/'
 
 # デフォルトの自動フィールド
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ログインフォームのスタイル設定
+LOGIN_FORM_WIDGET_ATTRS = {
+    'class': 'form-control',
+    'placeholder': 'ユーザー名またはパスワードを入力してください'
+}

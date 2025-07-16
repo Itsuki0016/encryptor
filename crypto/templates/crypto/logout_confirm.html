@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="text-center">🚪 ログアウト確認</h2>
+            </div>
+            <div class="card-body text-center">
+                <p>{{ user.username }} さん、ログアウトしますか？</p>
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">ログアウト</button>
+                </form>
+                <a href="{% url 'encrypt' %}" class="btn btn-secondary">キャンセル</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

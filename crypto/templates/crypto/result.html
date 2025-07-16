@@ -1,10 +1,22 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>{{ mode|title }} 結果</h2>
+<h2>
+    {% if mode == "encrypt" %}
+        暗号化 結果
+    {% else %}
+        復号 結果
+    {% endif %}
+</h2>
 
 <div class="alert alert-success">
-    <strong>{{ mode == "encrypt" and "暗号化" or "復号" }}結果:</strong>
+    <strong>
+        {% if mode == "encrypt" %}
+            暗号化結果:
+        {% else %}
+            復号結果:
+        {% endif %}
+    </strong>
     <p><code>{{ result }}</code></p>
 </div>
 
