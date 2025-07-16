@@ -14,6 +14,8 @@ class EncryptForm(forms.Form):
         choices=[
             ('caesar', 'Caesar暗号'),
             ('base64', 'Base64'),
+            ('random_substitution', '🎲 ランダム置換暗号'),
+            ('morse', '🕶️ モールス信号風'),
         ],
         widget=forms.Select(attrs={'class': 'form-select'})
     )
@@ -32,6 +34,8 @@ class DecryptForm(forms.Form):
         choices=[
             ('caesar', 'Caesar暗号'),
             ('base64', 'Base64'),
+            ('random_substitution', 'ランダム置換暗号'),
+            ('morse', 'モールス信号風'),
         ],
         widget=forms.Select(attrs={'class': 'form-select'})
     )

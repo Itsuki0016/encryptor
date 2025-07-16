@@ -4,7 +4,12 @@ from django.contrib.auth import logout
 from django.contrib import messages
 from .forms import EncryptForm, DecryptForm
 from .models import CryptoLog
-from .utils import caesar_encrypt, caesar_decrypt, base64_encrypt, base64_decrypt
+from .utils import (
+    caesar_encrypt, caesar_decrypt, 
+    base64_encrypt, base64_decrypt,
+    random_substitution_encrypt, random_substitution_decrypt,
+    morse_encrypt, morse_decrypt
+)
 
 # ログアウトビュー
 def logout_view(request):
@@ -28,8 +33,14 @@ def encrypt_view(request):
             try:
                 if method == 'caesar':
                     encrypted = caesar_encrypt(text)
-                else:
+                elif method == 'base64':
                     encrypted = base64_encrypt(text)
+                elif method == 'random_substitution':
+                    encrypted = random_substitution_encrypt(text)
+                elif method == 'morse':
+                    encrypted = morse_encrypt(text)
+                else:
+                    raise ValueError("未対応の暗号方式です")
 
                 # DB保存
                 CryptoLog.objects.create(
@@ -64,8 +75,14 @@ def decrypt_view(request):
             try:
                 if method == 'caesar':
                     decrypted = caesar_decrypt(encrypted)
-                else:
+                elif method == 'base64':
                     decrypted = base64_decrypt(encrypted)
+                elif method == 'random_substitution':
+                    decrypted = random_substitution_decrypt(encrypted)
+                elif method == 'morse':
+                    decrypted = morse_decrypt(encrypted)
+                else:
+                    raise ValueError("未対応の暗号方式です")
 
                 # DB保存
                 CryptoLog.objects.create(

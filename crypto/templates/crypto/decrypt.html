@@ -3,16 +3,37 @@
 {% block content %}
 <h2>🕵️‍♂️ 復号フォーム</h2>
 
-<form method="post">
-    {% csrf_token %}
-    <div class="mb-3">
-        {{ form.encrypted.label_tag }}<br>
-        {{ form.encrypted }}
+<div class="row">
+    <div class="col-md-8">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.encrypted.label_tag }}<br>
+                {{ form.encrypted }}
+            </div>
+            <div class="mb-3">
+                {{ form.method.label_tag }}<br>
+                {{ form.method }}
+            </div>
+            <button type="submit" class="btn btn-warning">復号する</button>
+        </form>
     </div>
-    <div class="mb-3">
-        {{ form.method.label_tag }}<br>
-        {{ form.method }}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>復号について</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><strong>ランダム置換暗号</strong><br>
+                        暗号文に変換規則が含まれています</li>
+                    <li><strong>モールス信号風</strong><br>
+                        .- や --- などの記号を文字に変換</li>
+                    <li><strong>その他</strong><br>
+                        対応する方式を選択してください</li>
+                </ul>
+            </div>
+        </div>
     </div>
-    <button type="submit" class="btn btn-warning">復号する</button>
-</form>
+</div>
 {% endblock %}

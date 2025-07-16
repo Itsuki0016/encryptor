@@ -5,6 +5,8 @@ class CryptoLog(models.Model):
     ENCRYPTION_METHODS = [
         ('caesar', 'Caesar暗号'),
         ('base64', 'Base64'),
+        ('random_substitution', 'ランダム置換暗号'),
+        ('morse', 'モールス信号風'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)

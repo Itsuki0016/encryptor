@@ -3,16 +3,39 @@
 {% block content %}
 <h2>🔐 暗号化フォーム</h2>
 
-<form method="post">
-    {% csrf_token %}
-    <div class="mb-3">
-        {{ form.text.label_tag }}<br>
-        {{ form.text }}
+<div class="row">
+    <div class="col-md-8">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.text.label_tag }}<br>
+                {{ form.text }}
+            </div>
+            <div class="mb-3">
+                {{ form.method.label_tag }}<br>
+                {{ form.method }}
+            </div>
+            <button type="submit" class="btn btn-primary">暗号化する</button>
+        </form>
     </div>
-    <div class="mb-3">
-        {{ form.method.label_tag }}<br>
-        {{ form.method }}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>暗号化方式の説明</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><strong>Caesar暗号</strong><br>
+                        文字を3文字ずつシフト</li>
+                    <li><strong>Base64</strong><br>
+                        標準的なBase64エンコーディング</li>
+                    <li><strong>ランダム置換暗号</strong><br>
+                        毎回ランダムな変換規則を生成</li>
+                    <li><strong>モールス信号風</strong><br>
+                        文字を . と - に置き換え</li>
+                </ul>
+            </div>
+        </div>
     </div>
-    <button type="submit" class="btn btn-primary">暗号化する</button>
-</form>
+</div>
 {% endblock %}
