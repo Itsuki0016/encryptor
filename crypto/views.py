@@ -1,3 +1,10 @@
+"""
+暗号化アプリケーションのビュー定義
+
+このモジュールは暗号化・復号化・履歴表示のWebページ処理を担当します。
+ユーザー認証が必要な機能はlogin_requiredデコレータで保護されています。
+"""
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
@@ -16,9 +23,22 @@ from .utils import (
     binary_encrypt, binary_decrypt
 )
 
-# ログアウトビュー
+
 def logout_view(request):
+    """
+    ログアウト処理のビュー
+    
+    POSTリクエストでのみログアウトを実行し、GETリクエストの場合は
+    確認ページを表示します。これはCSRF攻撃を防ぐためです。
+    
+    Args:
+        request: HTTPリクエストオブジェクト
+    
+    Returns:
+        HttpResponse: ログアウト確認ページまたはリダイレクト
+    """
     if request.method == 'POST':
+        # POSTリクエストの場合のみログアウト実行
         logout(request)
         messages.success(request, 'ログアウトしました。')
         return redirect('login')
@@ -26,9 +46,21 @@ def logout_view(request):
         # GETリクエストの場合は確認ページを表示
         return render(request, 'crypto/logout_confirm.html')
 
-# 🔐 暗号化ビュー
+
 @login_required
 def encrypt_view(request):
+    """
+    暗号化処理のビュー
+    
+    ユーザーが入力したテキストを選択された方式で暗号化します。
+    処理結果はデータベースに記録され、結果ページに表示されます。
+    
+    Args:
+        request: HTTPリクエストオブジェクト
+    
+    Returns:
+        HttpResponse: 暗号化フォームページまたは結果ページ
+    """
     if request.method == 'POST':
         form = EncryptForm(request.POST)
         if form.is_valid():
@@ -36,6 +68,7 @@ def encrypt_view(request):
             method = form.cleaned_data['method']
 
             try:
+                # 選択された暗号化方式に応じて処理を分岐
                 if method == 'caesar':
                     encrypted = caesar_encrypt(text)
                 elif method == 'base64':
@@ -57,13 +90,13 @@ def encrypt_view(request):
                 else:
                     raise ValueError("未対応の暗号方式です")
 
-                # DB保存
+                # 暗号化結果をデータベースに保存
                 CryptoLog.objects.create(
                     user=request.user,
                     original_text=text,
                     encrypted_text=encrypted,
                     method=method,
-                    is_decryption=False
+                    is_decryption=False  # 暗号化フラグ
                 )
 
                 messages.success(request, '暗号化が完了しました！')
@@ -72,15 +105,29 @@ def encrypt_view(request):
                     'mode': 'encrypt'
                 })
             except Exception as e:
+                # エラーが発生した場合はメッセージを表示
                 messages.error(request, f'暗号化に失敗しました: {str(e)}')
     else:
+        # GETリクエストの場合は空のフォームを表示
         form = EncryptForm()
 
     return render(request, 'crypto/encrypt.html', {'form': form})
 
-# 🕵️‍♂️ 復号ビュー
+
 @login_required
 def decrypt_view(request):
+    """
+    復号化処理のビュー
+    
+    ユーザーが入力した暗号文を選択された方式で復号化します。
+    処理結果はデータベースに記録され、結果ページに表示されます。
+    
+    Args:
+        request: HTTPリクエストオブジェクト
+    
+    Returns:
+        HttpResponse: 復号化フォームページまたは結果ページ
+    """
     if request.method == 'POST':
         form = DecryptForm(request.POST)
         if form.is_valid():
@@ -88,6 +135,7 @@ def decrypt_view(request):
             method = form.cleaned_data['method']
 
             try:
+                # 選択された復号化方式に応じて処理を分岐
                 if method == 'caesar':
                     decrypted = caesar_decrypt(encrypted)
                 elif method == 'base64':
@@ -109,13 +157,13 @@ def decrypt_view(request):
                 else:
                     raise ValueError("未対応の暗号方式です")
 
-                # DB保存
+                # 復号化結果をデータベースに保存
                 CryptoLog.objects.create(
                     user=request.user,
                     original_text=decrypted,
                     encrypted_text=encrypted,
                     method=method,
-                    is_decryption=True
+                    is_decryption=True  # 復号化フラグ
                 )
 
                 messages.success(request, '復号が完了しました！')
@@ -124,14 +172,28 @@ def decrypt_view(request):
                     'mode': 'decrypt'
                 })
             except Exception as e:
+                # エラーが発生した場合はメッセージを表示
                 messages.error(request, f'復号に失敗しました: {str(e)}')
     else:
+        # GETリクエストの場合は空のフォームを表示
         form = DecryptForm()
 
     return render(request, 'crypto/decrypt.html', {'form': form})
 
-# 📜 履歴表示ビュー
+
 @login_required
 def history_view(request):
+    """
+    履歴表示のビュー
+    
+    ログインユーザーの暗号化・復号化履歴を新しい順で表示します。
+    
+    Args:
+        request: HTTPリクエストオブジェクト
+    
+    Returns:
+        HttpResponse: 履歴表示ページ
+    """
+    # 現在のユーザーのログを作成日時の降順で取得
     logs = CryptoLog.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'crypto/history.html', {'logs': logs})
