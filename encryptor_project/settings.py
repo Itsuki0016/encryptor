@@ -67,6 +67,7 @@ TEMPLATES = [
                 'django.template.context_processors.debug',    # デバッグ情報
                 'django.template.context_processors.request',  # リクエスト情報
                 'django.contrib.auth.context_processors.auth', # 認証情報
+                'django.contrib.messages.context_processors.messages',  # メッセージ
             ],
         },
     },
@@ -118,7 +119,7 @@ STATIC_URL = '/static/'  # 静的ファイルのURL
 
 # 認証関連のリダイレクト設定
 LOGIN_URL = '/login/'           # ログインページURL
-LOGIN_REDIRECT_URL = '/'        # ログイン成功後のリダイレクト先
+LOGIN_REDIRECT_URL = '/main'    # ログイン成功後のリダイレクト先
 LOGOUT_REDIRECT_URL = '/login/' # ログアウト後のリダイレクト先
 
 # モデルの主キーフィールドのデフォルト設定

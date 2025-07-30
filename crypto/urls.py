@@ -14,6 +14,9 @@ urlpatterns = [
     # ホームページ（暗号化ページにリダイレクト）
     path('', views.encrypt_view, name='home'),
     
+    # メインページ（ログイン後のランディングページ）
+    path('main/', views.encrypt_view, name='main'),
+    
     # 暗号化ページ
     path('encrypt/', views.encrypt_view, name='encrypt'),
     
