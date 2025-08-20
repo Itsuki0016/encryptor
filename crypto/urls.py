@@ -37,6 +37,6 @@ urlpatterns = [
     path('api/encrypt-preview/', views.encrypt_preview, name='encrypt_preview'),
     
     # バッチ処理（複数テキスト処理）
-    path('batch/encrypt/', views.batch_encrypt_view, name='batch_encrypt'),
+    path('batch/', views.batch_encrypt_view, name='batch_encrypt'),
     path('batch/decrypt/', views.batch_decrypt_view, name='batch_decrypt'),
 ]
