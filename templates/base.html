@@ -15,6 +15,7 @@
             <p>ようこそ、{{ user.username }} さん | 
                 <a href="{% url 'encrypt' %}">暗号化</a> /
                 <a href="{% url 'decrypt' %}">復号</a> /
+                <a href="{% url 'batch_encrypt' %}">バッチ処理</a> /
                 <a href="{% url 'history' %}">履歴</a> /
                 <a href="{% url 'logout' %}">ログアウト</a></p>
         {% else %}

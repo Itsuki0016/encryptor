@@ -5,7 +5,7 @@
 
 <div class="row">
     <div class="col-md-8">
-        <form method="post">
+        <form method="post" id="encryptForm">
             {% csrf_token %}
             <div class="mb-3">
                 {{ form.text.label_tag }}<br>
@@ -15,7 +15,37 @@
                 {{ form.method.label_tag }}<br>
                 {{ form.method }}
             </div>
-            <button type="submit" class="btn btn-primary">暗号化する</button>
+            
+            <!-- リアルタイムプレビュー用の結果表示エリア -->
+            <div class="mb-3">
+                <div class="card bg-light">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">📝 リアルタイムプレビュー</h6>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="enablePreview" checked>
+                            <label class="form-check-label" for="enablePreview">有効</label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="previewResult">
+                            <small class="text-muted">テキストを入力して暗号化方式を選択すると、リアルタイムでプレビューが表示されます</small>
+                        </div>
+                        <div id="previewLoading" class="d-none">
+                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                <span class="visually-hidden">処理中...</span>
+                            </div>
+                            <small>暗号化中...</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">暗号化する</button>
+                <button type="button" class="btn btn-secondary" id="copyPreviewBtn" style="display: none;">
+                    📋 プレビューをコピー
+                </button>
+            </div>
         </form>
     </div>
     <div class="col-md-4">
@@ -48,4 +78,131 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const textInput = document.getElementById('{{ form.text.id_for_label }}');
+    const methodSelect = document.getElementById('{{ form.method.id_for_label }}');
+    const enablePreview = document.getElementById('enablePreview');
+    const previewResult = document.getElementById('previewResult');
+    const previewLoading = document.getElementById('previewLoading');
+    const copyPreviewBtn = document.getElementById('copyPreviewBtn');
+    
+    let previewTimeout;
+    let currentPreviewResult = '';
+    
+    // CSRFトークンを取得
+    function getCsrfToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+    
+    // リアルタイムプレビュー処理
+    function updatePreview() {
+        if (!enablePreview.checked) {
+            return;
+        }
+        
+        const text = textInput.value.trim();
+        const method = methodSelect.value;
+        
+        if (!text || !method) {
+            previewResult.innerHTML = '<small class="text-muted">テキストを入力して暗号化方式を選択すると、リアルタイムでプレビューが表示されます</small>';
+            copyPreviewBtn.style.display = 'none';
+            return;
+        }
+        
+        // ローディング表示
+        previewResult.classList.add('d-none');
+        previewLoading.classList.remove('d-none');
+        copyPreviewBtn.style.display = 'none';
+        
+        // Ajax リクエスト
+        fetch('{% url "encrypt_preview" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                text: text,
+                method: method
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            previewLoading.classList.add('d-none');
+            previewResult.classList.remove('d-none');
+            
+            if (data.success) {
+                currentPreviewResult = data.result;
+                previewResult.innerHTML = `
+                    <div class="alert alert-success mb-0">
+                        <strong>暗号化結果:</strong><br>
+                        <code style="word-break: break-all;">${data.result}</code>
+                    </div>
+                `;
+                copyPreviewBtn.style.display = 'inline-block';
+            } else {
+                previewResult.innerHTML = `
+                    <div class="alert alert-danger mb-0">
+                        <strong>エラー:</strong> ${data.error}
+                    </div>
+                `;
+                copyPreviewBtn.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            previewLoading.classList.add('d-none');
+            previewResult.classList.remove('d-none');
+            previewResult.innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    <strong>エラー:</strong> 通信エラーが発生しました
+                </div>
+            `;
+            copyPreviewBtn.style.display = 'none';
+        });
+    }
+    
+    // デバウンス付きのプレビュー更新
+    function debouncedUpdatePreview() {
+        clearTimeout(previewTimeout);
+        previewTimeout = setTimeout(updatePreview, 500);
+    }
+    
+    // イベントリスナー設定
+    textInput.addEventListener('input', debouncedUpdatePreview);
+    methodSelect.addEventListener('change', debouncedUpdatePreview);
+    
+    // プレビュー有効/無効切り替え
+    enablePreview.addEventListener('change', function() {
+        if (this.checked) {
+            updatePreview();
+        } else {
+            previewResult.innerHTML = '<small class="text-muted">プレビューが無効になっています</small>';
+            copyPreviewBtn.style.display = 'none';
+        }
+    });
+    
+    // プレビュー結果をコピー
+    copyPreviewBtn.addEventListener('click', function() {
+        if (currentPreviewResult) {
+            navigator.clipboard.writeText(currentPreviewResult).then(function() {
+                // 一時的にボタンのテキストを変更
+                const originalText = copyPreviewBtn.textContent;
+                copyPreviewBtn.textContent = '✅ コピー完了!';
+                copyPreviewBtn.classList.add('btn-success');
+                copyPreviewBtn.classList.remove('btn-secondary');
+                
+                setTimeout(function() {
+                    copyPreviewBtn.textContent = originalText;
+                    copyPreviewBtn.classList.remove('btn-success');
+                    copyPreviewBtn.classList.add('btn-secondary');
+                }, 2000);
+            }).catch(function() {
+                alert('コピーに失敗しました');
+            });
+        }
+    });
+});
+</script>
 {% endblock %}

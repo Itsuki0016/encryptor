@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>🔓 バッチ復号化（複数暗号文処理）</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="texts" class="form-label">復号化したい暗号文（改行区切り）</label>
+                <textarea 
+                    name="texts" 
+                    id="texts" 
+                    class="form-control" 
+                    rows="8"
+                    placeholder="複数の暗号文を改行で区切って入力してください&#10;例：&#10;Khoor Zruog&#10;Jrrg Prumlqj&#10;Wkdqn brx"
+                    required></textarea>
+                <small class="form-text text-muted">
+                    各行が個別に復号化されます。空行は無視されます。
+                </small>
+            </div>
+            
+            <div class="mb-3">
+                <label for="method" class="form-label">復号化方式</label>
+                <select name="method" id="method" class="form-select" required>
+                    <option value="">復号化方式を選択してください</option>
+                    {% for value, display in method_choices %}
+                        <option value="{{ value }}">{{ display }}</option>
+                    {% endfor %}
+                </select>
+                <small class="form-text text-muted">
+                    暗号化に使用したのと同じ方式を選択してください。
+                </small>
+            </div>
+            
+            <!-- リアルタイムカウンター -->
+            <div class="mb-3">
+                <div class="alert alert-info">
+                    <span id="lineCount">0</span> 行の暗号文が入力されています
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-warning">
+                    🔓 一括復号化する
+                </button>
+                <a href="{% url 'batch_encrypt' %}" class="btn btn-outline-primary">
+                    🔐 バッチ暗号化へ
+                </a>
+                <a href="{% url 'decrypt' %}" class="btn btn-outline-dark">
+                    ← 通常の復号化へ
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>💡 使い方のヒント</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><strong>📝 入力方法</strong><br>
+                        <small class="text-muted">各行に1つの暗号文を入力</small></li>
+                    <li><strong>🔄 方式統一</strong><br>
+                        <small class="text-muted">全て同じ暗号化方式で作成された暗号文であることが必要</small></li>
+                    <li><strong>⚡ 高速処理</strong><br>
+                        <small class="text-muted">全ての暗号文を一度に復号化</small></li>
+                    <li><strong>💾 自動保存</strong><br>
+                        <small class="text-muted">結果は履歴に自動保存されます</small></li>
+                    <li><strong>⚠️ エラー処理</strong><br>
+                        <small class="text-muted">復号化に失敗した場合はエラーメッセージを表示</small></li>
+                </ul>
+                
+                <hr>
+                
+                <h6>🎯 活用例</h6>
+                <ul class="list-unstyled">
+                    <li>• 暗号化済みパスワードの復号</li>
+                    <li>• メッセージリストの復元</li>
+                    <li>• データベース項目の復号</li>
+                    <li>• バックアップデータの復元</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>⚠️ 注意事項</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><strong>ランダム置換暗号</strong><br>
+                        <small class="text-muted">暗号文に変換規則が含まれている必要があります</small></li>
+                    <li><strong>方式の一致</strong><br>
+                        <small class="text-muted">暗号化時と同じ方式を選択してください</small></li>
+                    <li><strong>フォーマット</strong><br>
+                        <small class="text-muted">暗号文が正しい形式であることを確認してください</small></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const textsTextarea = document.getElementById('texts');
+    const lineCountSpan = document.getElementById('lineCount');
+    
+    function updateLineCount() {
+        const text = textsTextarea.value.trim();
+        if (!text) {
+            lineCountSpan.textContent = '0';
+            return;
+        }
+        
+        const lines = text.split('\n').filter(line => line.trim() !== '');
+        lineCountSpan.textContent = lines.length;
+        
+        // 100行を超える場合は警告
+        if (lines.length > 100) {
+            lineCountSpan.parentElement.className = 'alert alert-warning';
+            lineCountSpan.parentElement.innerHTML = 
+                `<strong>⚠️ ${lines.length} 行</strong> - 100行を超えています。処理に時間がかかる場合があります。`;
+        } else if (lines.length > 50) {
+            lineCountSpan.parentElement.className = 'alert alert-info';
+            lineCountSpan.parentElement.innerHTML = 
+                `<span id="lineCount">${lines.length}</span> 行の暗号文が入力されています（大量処理）`;
+        } else {
+            lineCountSpan.parentElement.className = 'alert alert-info';
+            lineCountSpan.parentElement.innerHTML = 
+                `<span id="lineCount">${lines.length}</span> 行の暗号文が入力されています`;
+        }
+    }
+    
+    textsTextarea.addEventListener('input', updateLineCount);
+    
+    // 初期表示
+    updateLineCount();
+});
+</script>
+{% endblock %}

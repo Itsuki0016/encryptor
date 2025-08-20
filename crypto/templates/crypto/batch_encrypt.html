@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>📋 バッチ暗号化（複数テキスト処理）</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="texts" class="form-label">暗号化したいテキスト（改行区切り）</label>
+                <textarea 
+                    name="texts" 
+                    id="texts" 
+                    class="form-control" 
+                    rows="8"
+                    placeholder="複数のテキストを改行で区切って入力してください&#10;例：&#10;Hello World&#10;Good Morning&#10;Thank you"
+                    required></textarea>
+                <small class="form-text text-muted">
+                    各行が個別に暗号化されます。空行は無視されます。
+                </small>
+            </div>
+            
+            <div class="mb-3">
+                <label for="method" class="form-label">暗号化方式</label>
+                <select name="method" id="method" class="form-select" required>
+                    <option value="">暗号化方式を選択してください</option>
+                    {% for value, display in method_choices %}
+                        <option value="{{ value }}">{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- リアルタイムカウンター -->
+            <div class="mb-3">
+                <div class="alert alert-info">
+                    <span id="lineCount">0</span> 行のテキストが入力されています
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    🔐 一括暗号化する
+                </button>
+                <a href="{% url 'batch_decrypt' %}" class="btn btn-outline-secondary">
+                    🔓 バッチ復号化へ
+                </a>
+                <a href="{% url 'encrypt' %}" class="btn btn-outline-dark">
+                    ← 通常の暗号化へ
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>💡 使い方のヒント</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><strong>📝 入力方法</strong><br>
+                        <small class="text-muted">各行に1つのテキストを入力</small></li>
+                    <li><strong>🔢 処理件数</strong><br>
+                        <small class="text-muted">最大100行まで一度に処理可能</small></li>
+                    <li><strong>⚡ 高速処理</strong><br>
+                        <small class="text-muted">全てのテキストを一度に暗号化</small></li>
+                    <li><strong>💾 自動保存</strong><br>
+                        <small class="text-muted">結果は履歴に自動保存されます</small></li>
+                    <li><strong>📋 結果出力</strong><br>
+                        <small class="text-muted">結果は一覧表示・コピー可能</small></li>
+                </ul>
+                
+                <hr>
+                
+                <h6>🎯 活用例</h6>
+                <ul class="list-unstyled">
+                    <li>• パスワード一覧の暗号化</li>
+                    <li>• メッセージリストの処理</li>
+                    <li>• データベース項目の変換</li>
+                    <li>• ファイル内容の一括処理</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>暗号化方式</h5>
+            </div>
+            <div class="card-body">
+                <small class="text-muted">
+                    すべての行に同じ暗号化方式が適用されます。<br>
+                    詳細は<a href="{% url 'encrypt' %}">通常の暗号化ページ</a>をご参照ください。
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const textsTextarea = document.getElementById('texts');
+    const lineCountSpan = document.getElementById('lineCount');
+    
+    function updateLineCount() {
+        const text = textsTextarea.value.trim();
+        if (!text) {
+            lineCountSpan.textContent = '0';
+            return;
+        }
+        
+        const lines = text.split('\n').filter(line => line.trim() !== '');
+        lineCountSpan.textContent = lines.length;
+        
+        // 100行を超える場合は警告
+        if (lines.length > 100) {
+            lineCountSpan.parentElement.className = 'alert alert-warning';
+            lineCountSpan.parentElement.innerHTML = 
+                `<strong>⚠️ ${lines.length} 行</strong> - 100行を超えています。処理に時間がかかる場合があります。`;
+        } else if (lines.length > 50) {
+            lineCountSpan.parentElement.className = 'alert alert-info';
+            lineCountSpan.parentElement.innerHTML = 
+                `<span id="lineCount">${lines.length}</span> 行のテキストが入力されています（大量処理）`;
+        } else {
+            lineCountSpan.parentElement.className = 'alert alert-info';
+            lineCountSpan.parentElement.innerHTML = 
+                `<span id="lineCount">${lines.length}</span> 行のテキストが入力されています`;
+        }
+    }
+    
+    textsTextarea.addEventListener('input', updateLineCount);
+    
+    // 初期表示
+    updateLineCount();
+});
+</script>
+{% endblock %}
