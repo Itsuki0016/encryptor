@@ -682,8 +682,14 @@ def batch_encrypt_view(request):
                 )
             
             messages.success(request, f'{len(results)}件のテキストを暗号化しました！')
+            
+            # resultsをJSONシリアライズ用に文字列として渡す
+            import json
+            results_json = json.dumps(results, ensure_ascii=False)
+            
             return render(request, 'crypto/batch_result.html', {
-                'results': results,
+                'results': results,  # テンプレートの長さ計算用
+                'results_json': results_json,  # JavaScript用
                 'method': method,
                 'method_display': dict(CryptoLog.ENCRYPTION_METHODS)[method],
                 'mode': 'encrypt'
@@ -777,8 +783,13 @@ def batch_decrypt_view(request):
                 )
             
             messages.success(request, f'{len(results)}件の暗号文を復号化しました！')
+            
+            # resultsをJSONシリアライズ用に文字列として渡す
+            results_json = json.dumps(results, ensure_ascii=False)
+            
             return render(request, 'crypto/batch_result.html', {
-                'results': results,
+                'results': results,  # テンプレートの長さ計算用
+                'results_json': results_json,  # JavaScript用
                 'method': method,
                 'method_display': dict(CryptoLog.ENCRYPTION_METHODS)[method],
                 'mode': 'decrypt'

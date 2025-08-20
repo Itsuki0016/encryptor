@@ -167,7 +167,7 @@
 
 <script>
 // 結果データをJavaScriptで使用できるようにする
-const resultsData = {{ results|safe }};
+const resultsData = JSON.parse('{{ results_json|escapejs }}');
 const mode = "{{ mode }}";
 const methodDisplay = "{{ method_display }}";
 
@@ -184,11 +184,11 @@ function copyText(text) {
 // 全結果をコピー
 function copyAllResults() {
     let allText = '';
-    {% if mode == "encrypt" %}
+    if (mode === "encrypt") {
         allText = resultsData.map(r => r.encrypted).join('\n');
-    {% else %}
+    } else {
         allText = resultsData.map(r => r.original).join('\n');
-    {% endif %}
+    }
     
     navigator.clipboard.writeText(allText).then(function() {
         showToast('全結果をコピーしました!', 'success');
@@ -200,27 +200,27 @@ function copyAllResults() {
 // CSV形式でダウンロード
 function downloadResults() {
     let csvContent = '';
-    {% if mode == "encrypt" %}
+    if (mode === "encrypt") {
         csvContent = 'No.,元のテキスト,暗号化結果\n';
         resultsData.forEach((result, index) => {
             csvContent += `${index + 1},"${result.original.replace(/"/g, '""')}","${result.encrypted.replace(/"/g, '""')}"\n`;
         });
-    {% else %}
+    } else {
         csvContent = 'No.,暗号文,復号化結果\n';
         resultsData.forEach((result, index) => {
             csvContent += `${index + 1},"${result.encrypted.replace(/"/g, '""')}","${result.original.replace(/"/g, '""')}"\n`;
         });
-    {% endif %}
+    }
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    {% if mode == "encrypt" %}
+    if (mode === "encrypt") {
         link.setAttribute('download', `batch_encrypt_results_${new Date().toISOString().slice(0,10)}.csv`);
-    {% else %}
+    } else {
         link.setAttribute('download', `batch_decrypt_results_${new Date().toISOString().slice(0,10)}.csv`);
-    {% endif %}
+    }
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -232,13 +232,13 @@ function downloadResults() {
 // 詳細表示
 function showDetails(index) {
     const result = resultsData[index];
-    {% if mode == "encrypt" %}
+    if (mode === "encrypt") {
         document.getElementById('modalOriginal').value = result.original;
         document.getElementById('modalResult').value = result.encrypted;
-    {% else %}
+    } else {
         document.getElementById('modalOriginal').value = result.encrypted;
         document.getElementById('modalResult').value = result.original;
-    {% endif %}
+    }
     
     new bootstrap.Modal(document.getElementById('detailModal')).show();
 }
