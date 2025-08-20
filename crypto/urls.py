@@ -26,6 +26,10 @@ urlpatterns = [
     # 履歴表示ページ
     path('history/', views.history_view, name='history'),
     
+    # 履歴削除機能
+    path('history/delete/<int:log_id>/', views.delete_history, name='delete_history'),
+    path('history/clear/', views.clear_all_history, name='clear_all_history'),
+    
     # ログアウト処理（カスタムビューを使用）
     path('logout/', views.logout_view, name='logout'),
 ]

@@ -187,6 +187,7 @@ def history_view(request):
     履歴表示のビュー
     
     ログインユーザーの暗号化・復号化履歴を新しい順で表示します。
+    フィルタリング機能も提供します。
     
     Args:
         request: HTTPリクエストオブジェクト
@@ -194,6 +195,80 @@ def history_view(request):
     Returns:
         HttpResponse: 履歴表示ページ
     """
-    # 現在のユーザーのログを作成日時の降順で取得
-    logs = CryptoLog.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'crypto/history.html', {'logs': logs})
+    # 基本のクエリセット（現在のユーザーのログのみ）
+    logs = CryptoLog.objects.filter(user=request.user)
+    
+    # フィルタリング処理
+    method_filter = request.GET.get('method', '')
+    operation_filter = request.GET.get('operation', '')
+    
+    if method_filter:
+        logs = logs.filter(method=method_filter)
+    
+    if operation_filter:
+        if operation_filter == 'encrypt':
+            logs = logs.filter(is_decryption=False)
+        elif operation_filter == 'decrypt':
+            logs = logs.filter(is_decryption=True)
+    
+    # 作成日時の降順で並び替え
+    logs = logs.order_by('-created_at')
+    
+    # 暗号化方式の選択肢を取得（フィルタ用）
+    method_choices = CryptoLog.ENCRYPTION_METHODS
+    
+    return render(request, 'crypto/history.html', {
+        'logs': logs,
+        'method_choices': method_choices,
+        'current_method': method_filter,
+        'current_operation': operation_filter,
+    })
+
+
+@login_required
+def delete_history(request, log_id):
+    """
+    履歴削除のビュー
+    
+    指定されたIDの履歴レコードを削除します。
+    セキュリティのため、自分の履歴のみ削除可能です。
+    
+    Args:
+        request: HTTPリクエストオブジェクト
+        log_id: 削除対象の履歴ID
+    
+    Returns:
+        HttpResponse: 履歴ページへのリダイレクト
+    """
+    try:
+        # 自分の履歴のみ削除可能
+        log = CryptoLog.objects.get(id=log_id, user=request.user)
+        log.delete()
+        messages.success(request, '履歴を削除しました。')
+    except CryptoLog.DoesNotExist:
+        messages.error(request, '指定された履歴が見つかりません。')
+    
+    return redirect('history')
+
+
+@login_required
+def clear_all_history(request):
+    """
+    全履歴削除のビュー
+    
+    現在のユーザーのすべての履歴を削除します。
+    POSTリクエストでのみ実行されます。
+    
+    Args:
+        request: HTTPリクエストオブジェクト
+    
+    Returns:
+        HttpResponse: 履歴ページへのリダイレクト
+    """
+    if request.method == 'POST':
+        deleted_count = CryptoLog.objects.filter(user=request.user).delete()[0]
+        messages.success(request, f'{deleted_count}件の履歴を削除しました。')
+    else:
+        messages.error(request, '不正なリクエストです。')
+    
+    return redirect('history')

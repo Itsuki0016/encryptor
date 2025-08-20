@@ -3,30 +3,156 @@
 {% block content %}
 <h2>📜 履歴一覧</h2>
 
+<!-- フィルタリングフォーム -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5>🔍 フィルター</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="method" class="form-label">暗号化方式</label>
+                <select name="method" id="method" class="form-select">
+                    <option value="">すべて</option>
+                    {% for value, display in method_choices %}
+                        <option value="{{ value }}" {% if current_method == value %}selected{% endif %}>
+                            {{ display }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="operation" class="form-label">操作種別</label>
+                <select name="operation" id="operation" class="form-select">
+                    <option value="">すべて</option>
+                    <option value="encrypt" {% if current_operation == 'encrypt' %}selected{% endif %}>暗号化</option>
+                    <option value="decrypt" {% if current_operation == 'decrypt' %}selected{% endif %}>復号化</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">フィルター適用</button>
+                <a href="{% url 'history' %}" class="btn btn-secondary">リセット</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 全削除ボタン -->
 {% if logs %}
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>日時</th>
-                <th>方式</th>
-                <th>種類</th>
-                <th>元の文</th>
-                <th>変換結果</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for log in logs %}
-                <tr>
-                    <td>{{ log.created_at|date:"Y-m-d H:i" }}</td>
-                    <td>{{ log.get_method_display }}</td>
-                    <td>{{ log.is_decryption|yesno:"復号,暗号" }}</td>
-                    <td>{{ log.original_text }}</td>
-                    <td><code>{{ log.encrypted_text }}</code></td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-{% else %}
-    <p>履歴はまだありません。</p>
+    <div class="mb-3">
+        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#clearAllModal">
+            🗑️ すべての履歴を削除
+        </button>
+    </div>
 {% endif %}
+
+{% if logs %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>日時</th>
+                    <th>方式</th>
+                    <th>種類</th>
+                    <th>元の文</th>
+                    <th>変換結果</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                    <tr>
+                        <td>{{ log.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>{{ log.get_method_display }}</td>
+                        <td>
+                            {% if log.is_decryption %}
+                                <span class="badge bg-info">復号</span>
+                            {% else %}
+                                <span class="badge bg-success">暗号</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {{ log.original_text }}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <code>{{ log.encrypted_text }}</code>
+                            </div>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm" 
+                                    onclick="confirmDelete({{ log.id }}, '{{ log.get_method_display|escapejs }}')">
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        {% if current_method or current_operation %}
+            指定された条件に一致する履歴はありません。
+        {% else %}
+            履歴はまだありません。
+        {% endif %}
+    </div>
+{% endif %}
+
+<!-- 個別削除確認モーダル -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">履歴削除の確認</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteMessage">この履歴を削除しますか？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <a href="#" id="deleteConfirmBtn" class="btn btn-danger">削除する</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全削除確認モーダル -->
+<div class="modal fade" id="clearAllModal" tabindex="-1" aria-labelledby="clearAllModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="clearAllModalLabel">全履歴削除の確認</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>警告:</strong> すべての履歴が削除されます。この操作は元に戻せません。</p>
+                <p>本当にすべての履歴を削除しますか？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <form method="post" action="{% url 'clear_all_history' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">すべて削除する</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(logId, methodName) {
+    document.getElementById('deleteMessage').innerText = 
+        `「${methodName}」の履歴を削除しますか？`;
+    document.getElementById('deleteConfirmBtn').href = 
+        `/history/delete/${logId}/`;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+
 {% endblock %}
